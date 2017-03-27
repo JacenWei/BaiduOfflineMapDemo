@@ -1,8 +1,7 @@
 package com.example.jiaxin.baiduofflinemapdemo;
 
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
@@ -11,12 +10,12 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.TextureMapView;
-import com.baidu.mapapi.map.offline.OfflineMapUtil;
 import com.baidu.mapapi.model.LatLng;
 
 public class MainActivity extends AppCompatActivity implements BDLocationListener {
@@ -29,7 +28,6 @@ public class MainActivity extends AppCompatActivity implements BDLocationListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String  path = Environment.getExternalStorageDirectory().getPath()+"/BaiduMapSDKNew/vmp/h/";
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.activity_main);
         mapView = (TextureMapView) findViewById(R.id.mapview);
@@ -42,6 +40,12 @@ public class MainActivity extends AppCompatActivity implements BDLocationListene
                 , true, null));
         baiduMap.setMyLocationEnabled(true);
         baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+        //设置地图坐标到上海
+        LatLng ll = new LatLng(31.245105, 121.506377);
+        MapStatus mapStatus = new MapStatus.Builder().target(ll).zoom(12).build();
+        MapStatusUpdate msu = MapStatusUpdateFactory
+                .newMapStatus(mapStatus);
+        baiduMap.animateMapStatus(msu);
         locationClient = new LocationClient(getApplicationContext());
         locationClient.registerLocationListener(this);
         initLocation();
@@ -93,14 +97,15 @@ public class MainActivity extends AppCompatActivity implements BDLocationListene
                 .latitude(bdLocation.getLatitude())
                 .longitude(bdLocation.getLongitude())
                 .build();
-        Toast.makeText(this, bdLocation.getLatitude()+" , "+bdLocation.getLongitude() +","+bdLocation.getLocType(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, bdLocation.getLatitude() + " , " + bdLocation.getLongitude() + "," + bdLocation.getLocType(), Toast.LENGTH_SHORT).show();
         baiduMap.setMyLocationData(locationData);
 
         if (isFirstLoc) {
             isFirstLoc = false;
             LatLng ll = new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude());
-            MapStatusUpdate msu = MapStatusUpdateFactory.newLatLngZoom(ll, 16);
-//          MapStatusUpdate  msu  = MapStatusUpdateFactory.newLatLng(ll);
+            MapStatus mapStatus = new MapStatus.Builder().target(ll).zoom(16).build();
+            MapStatusUpdate msu = MapStatusUpdateFactory
+                    .newMapStatus(mapStatus);
             baiduMap.animateMapStatus(msu);
         }
     }
