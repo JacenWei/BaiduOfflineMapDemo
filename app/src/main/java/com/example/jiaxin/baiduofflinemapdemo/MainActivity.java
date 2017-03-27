@@ -12,8 +12,7 @@ import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
-import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MyLocationConfiguration;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
@@ -36,8 +35,6 @@ public class MainActivity extends AppCompatActivity implements BDLocationListene
 
     private void initMap() {
         baiduMap = mapView.getMap();
-        baiduMap.setMyLocationConfigeration(new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL
-                , true, null));
         baiduMap.setMyLocationEnabled(true);
         baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
         //设置地图坐标到上海
@@ -45,12 +42,11 @@ public class MainActivity extends AppCompatActivity implements BDLocationListene
         MapStatus mapStatus = new MapStatus.Builder().target(ll).zoom(12).build();
         MapStatusUpdate msu = MapStatusUpdateFactory
                 .newMapStatus(mapStatus);
-        baiduMap.animateMapStatus(msu);
+        baiduMap.setMapStatus(msu);
         locationClient = new LocationClient(getApplicationContext());
         locationClient.registerLocationListener(this);
         initLocation();
         locationClient.start();
-        locationClient.requestLocation();
     }
 
     private void initLocation() {
@@ -88,9 +84,12 @@ public class MainActivity extends AppCompatActivity implements BDLocationListene
 
     @Override
     public void onReceiveLocation(BDLocation bdLocation) {
-        if (mapView == null || bdLocation == null)
+        if (mapView == null || bdLocation == null) {
             return;
-
+        }
+        if (bdLocation.getLongitude() == 4.9E-324) {
+            return;
+        }
         MyLocationData locationData = new MyLocationData.Builder()
                 .accuracy(bdLocation.getRadius())
                 .direction(100)
@@ -101,6 +100,9 @@ public class MainActivity extends AppCompatActivity implements BDLocationListene
         baiduMap.setMyLocationData(locationData);
 
         if (isFirstLoc) {
+            if (bdLocation.getLongitude() == 4.9E-324) {
+                return;
+            }
             isFirstLoc = false;
             LatLng ll = new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude());
             MapStatus mapStatus = new MapStatus.Builder().target(ll).zoom(16).build();
